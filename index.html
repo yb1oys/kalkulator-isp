@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ISP Price Calculator Pro</title>
+    <style>
+        :root { --primary: #2563eb; --secondary: #64748b; --success: #22c55e; --bg: #f8fafc; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: #1e293b; padding: 20px; }
+        .wrapper { max-width: 800px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        @media (max-width: 768px) { .wrapper { grid-template-columns: 1fr; } }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
+        h2 { margin-top: 0; color: var(--primary); font-size: 1.25rem; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; }
+        .input-box { margin-bottom: 12px; }
+        label { display: block; font-size: 0.875rem; font-weight: 600; margin-bottom: 4px; }
+        input { width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; outline: none; }
+        input:focus { border-color: var(--primary); ring: 2px var(--primary); }
+        .btn { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 10px; }
+        .btn:hover { background: #1d4ed8; }
+        .result-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #e2e8f0; font-size: 0.9rem; }
+        .total-highlight { background: #eff6ff; padding: 15px; border-radius: 8px; margin-top: 15px; border-left: 4px solid var(--primary); }
+    </style>
+</head>
+<body>
+
+<div style="text-align: center; margin-bottom: 30px;">
+    <h1>Kalkulator Harga Layanan ISP</h1>
+    <p>Kepatuhan Regulasi Permen Kominfo No. 5 Tahun 2021</p>
+</div>
+
+<div class="wrapper">
+    <div class="card">
+        <h2>Input Komponen Biaya</h2>
+        <div class="input-box">
+            <label>Sewa Bandwidth Upstream (Rp)</label>
+            <input type="number" id="bw" value="10000000">
+        </div>
+        <div class="input-box">
+            <label>Gaji & Operasional (Rp)</label>
+            <input type="number" id="opex" value="5000000">
+        </div>
+        <div class="input-box">
+            <label>Depresiasi Alat/CAPEX (Rp)</label>
+            <input type="number" id="capex" value="2000000">
+        </div>
+        <div class="input-box">
+            <label>Target Jumlah User</label>
+            <input type="number" id="users" value="100">
+        </div>
+        <div class="input-box">
+            <label>Margin Keuntungan (%)</label>
+            <input type="number" id="margin" value="30">
+        </div>
+        <button class="btn" onclick="hitungRinci()">Hitung Rincian</button>
+    </div>
+
+    <div class="card">
+        <h2>Analisis Harga Jual</h2>
+        <div id="displayResults">
+            <div class="result-item"><span>Total Biaya (Pokok):</span> <span id="outTotalCost">Rp 0</span></div>
+            <div class="result-item"><span>Harga Pokok / User:</span> <span id="outHPP">Rp 0</span></div>
+            <div class="result-item"><span>Margin Keuntungan:</span> <span id="outProfit">Rp 0</span></div>
+            <div class="result-item" style="font-weight: bold;"><span>Harga Dasar Jual:</span> <span id="outDasar">Rp 0</span></div>
+            
+            <div style="margin-top: 15px; color: #64748b; font-size: 0.8rem;">Kewajiban Negara:</div>
+            <div class="result-item"><span>BHP Telekomunikasi (0.5%):</span> <span id="outBHP">Rp 0</span></div>
+            <div class="result-item"><span>BHP USO (1.25%):</span> <span id="outUSO">Rp 0</span></div>
+            <div class="result-item"><span>PPN (11%):</span> <span id="outPPN">Rp 0</span></div>
+
+            <div class="total-highlight">
+                <span style="font-size: 0.8rem; font-weight: bold; color: var(--primary);">TOTAL TAGIHAN KE USER:</span>
+                <div id="outFinal" style="font-size: 1.5rem; font-weight: 800; color: #1e293b; margin-top: 5px;">Rp 0</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function formatIDR(angka) {
+        return "Rp " + Math.ceil(angka).toLocaleString('id-ID');
+    }
+
+    function hitungRinci() {
+        // Ambil Data
+        const bw = parseFloat(document.getElementById('bw').value) || 0;
+        const opex = parseFloat(document.getElementById('opex').value) || 0;
+        const capex = parseFloat(document.getElementById('capex').value) || 0;
+        const users = parseFloat(document.getElementById('users').value) || 1;
+        const marginPersen = parseFloat(document.getElementById('margin').value) / 100;
+
+        // Hitung HPP
+        const totalCost = bw + opex + capex;
+        const hppPerUser = totalCost / users;
+        const profitPerUser = hppPerUser * marginPersen;
+        const hargaDasar = hppPerUser + profitPerUser;
+
+        // Hitung Pajak & PNBP
+        const bhp = hargaDasar * 0.005;
+        const uso = hargaDasar * 0.0125;
+        const ppn = hargaDasar * 0.11;
+        const totalFinal = hargaDasar + bhp + uso + ppn;
+
+        // Tampilkan
+        document.getElementById('outTotalCost').innerText = formatIDR(totalCost);
+        document.getElementById('outHPP').innerText = formatIDR(hppPerUser);
+        document.getElementById('outProfit').innerText = formatIDR(profitPerUser);
+        document.getElementById('outDasar').innerText = formatIDR(hargaDasar);
+        document.getElementById('outBHP').innerText = formatIDR(bhp);
+        document.getElementById('outUSO').innerText = formatIDR(uso);
+        document.getElementById('outPPN').innerText = formatIDR(ppn);
+        document.getElementById('outFinal').innerText = formatIDR(totalFinal);
+    }
+
+    // Jalankan sekali saat load
+    window.onload = hitungRinci;
+</script>
+
+</body>
+</html>
